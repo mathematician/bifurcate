@@ -76,14 +76,19 @@ func main() {
 	s3Bucket := flag.Args()[0]
 	fmt.Printf("Bucket where state files are stored: %s\n", s3Bucket)
 
-	key := "operations/bastion/terraform.tfstate"
-
-	tfstateResources, err := tfstate.GetResources(s3Bucket, key)
+	keys, err := tfstate.FindKeysBySuffix(s3Bucket, ".tfstate")
 	if err != nil {
 		panic("Error, " + err.Error())
 	}
 
-	fmt.Printf("Resources: \n")
+	tfstateResources := tfstate.GetAllResources(s3Bucket, keys)
+
+	fmt.Printf("\nTerraform State Keys: \n")
+	for _, key := range keys {
+		fmt.Printf("%+v\n", key)
+	}
+
+	fmt.Printf("\nTerraform State Resources: \n")
 	for _, resource := range tfstateResources {
 		fmt.Printf("%+v\n", resource)
 	}
