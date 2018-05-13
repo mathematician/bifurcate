@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/mathematician/bifurcate/tfstate"
 	"github.com/mathematician/bifurcate/version"
+
 	"github.com/sirupsen/logrus"
 )
 
 const (
+	// BANNER is what is printed for help/info output
 	BANNER = `
  ______  _____ _______ _     _  ______ _______ _______ _______ _______
  |_____]   |   |______ |     | |_____/ |       |_____|    |    |______
@@ -21,11 +24,15 @@ Version: %s
 )
 
 var (
+	region string
+
 	debug bool
 	vrsn  bool
 )
 
 func init() {
+	flag.StringVar(&region, "region", "", "aws region")
+
 	flag.BoolVar(&vrsn, "version", false, "print version and exit")
 	flag.BoolVar(&debug, "debug", false, "run in debug")
 
@@ -59,11 +66,27 @@ func init() {
 	if debug {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
+
+	if region != "" {
+		os.Setenv("AWS_REGION", region)
+	}
 }
 
 func main() {
 	s3Bucket := flag.Args()[0]
-	fmt.Printf("Bucket where state files are stored: %s", s3Bucket)
+	fmt.Printf("Bucket where state files are stored: %s\n", s3Bucket)
+
+	key := "operations/bastion/terraform.tfstate"
+
+	tfstateResources, err := tfstate.GetResources(s3Bucket, key)
+	if err != nil {
+		panic("Error, " + err.Error())
+	}
+
+	fmt.Printf("Resources: \n")
+	for _, resource := range tfstateResources {
+		fmt.Printf("%+v\n", resource)
+	}
 }
 
 func printUsageAndExit(message string, exitCode int) {
@@ -71,6 +94,7 @@ func printUsageAndExit(message string, exitCode int) {
 		fmt.Fprintf(os.Stderr, message)
 		fmt.Fprintf(os.Stderr, "\n\n")
 	}
+
 	flag.Usage()
 	fmt.Fprintf(os.Stderr, "\n")
 	os.Exit(exitCode)
