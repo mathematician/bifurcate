@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/mathematician/bifurcate/awsstate"
 	"github.com/mathematician/bifurcate/tfstate"
 	"github.com/mathematician/bifurcate/version"
 
@@ -20,6 +21,7 @@ const (
                                                                       
 Tool to generate bifurcations between aws account and terraform state
 Version: %s
+bifurcate -region <region> <bucket>
 `
 )
 
@@ -67,6 +69,10 @@ func init() {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
 
+	if region == "" {
+		printUsageAndExit("Missing region argument.", 1)
+	}
+
 	if region != "" {
 		os.Setenv("AWS_REGION", region)
 	}
@@ -76,7 +82,7 @@ func main() {
 	s3Bucket := flag.Args()[0]
 	fmt.Printf("Bucket where state files are stored: %s\n", s3Bucket)
 
-	keys, err := tfstate.FindKeysBySuffix(s3Bucket, ".tfstate")
+	keys, err := awsstate.FindKeysBySuffix(s3Bucket, ".tfstate")
 	if err != nil {
 		panic("Error, " + err.Error())
 	}

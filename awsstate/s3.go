@@ -1,4 +1,4 @@
-package tfstate
+package awsstate
 
 import (
 	"strings"
@@ -40,7 +40,7 @@ func FindKeys(s3Client s3iface.S3API, bucket string) (*s3.ListObjectsV2Output, e
 	return req.Send()
 }
 
-func getObject(bucket string, key string) ([]byte, error) {
+func GetObject(bucket string, key string) ([]byte, error) {
 	cfg, err := external.LoadDefaultAWSConfig()
 	if err != nil {
 		panic("unable to load SDK config, " + err.Error())

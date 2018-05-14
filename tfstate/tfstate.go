@@ -3,6 +3,8 @@ package tfstate
 import (
 	"encoding/json"
 	"strings"
+
+	"github.com/mathematician/bifurcate/awsstate"
 )
 
 type State struct {
@@ -45,7 +47,7 @@ func GetAllResources(bucket string, keys []string) []Resource {
 
 func GetResources(bucket string, key string) ([]Resource, error) {
 	resources := []Resource{}
-	stateBuf, err := getObject(bucket, key)
+	stateBuf, err := awsstate.GetObject(bucket, key)
 	if err != nil {
 		return nil, err
 	}
