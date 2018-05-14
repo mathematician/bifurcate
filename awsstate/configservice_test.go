@@ -1,7 +1,6 @@
 package awsstate
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -24,8 +23,18 @@ func (m *mockConfigServiceClient) ListDiscoveredResourcesRequest(input *configse
 		input = &configservice.ListDiscoveredResourcesInput{}
 	}
 
-	output := &configservice.ListDiscoveredResourcesOutput{}
-	//req := m.newRequest(op, input, output)
+	output := &configservice.ListDiscoveredResourcesOutput{
+		ResourceIdentifiers: []configservice.ResourceIdentifier{
+			configservice.ResourceIdentifier{
+				ResourceId:   aws.String("i-11111111111111111"),
+				ResourceType: "AWS::EC2::Instance",
+			},
+			configservice.ResourceIdentifier{
+				ResourceId:   aws.String("i-22222222222222222"),
+				ResourceType: "AWS::EC2::Instance",
+			},
+		},
+	}
 	req := &aws.Request{
 		Operation: op,
 		Params:    input,
@@ -33,7 +42,6 @@ func (m *mockConfigServiceClient) ListDiscoveredResourcesRequest(input *configse
 	}
 
 	return configservice.ListDiscoveredResourcesRequest{Request: req, Input: input, Copy: m.ListDiscoveredResourcesRequest}
-	//	return &configservice.ListDiscoveredResourcesRequest{}
 }
 
 func TestGetResourcesByService(t *testing.T) {
@@ -46,5 +54,7 @@ func TestGetResourcesByService(t *testing.T) {
 		panic("failed, " + err.Error())
 	}
 
-	fmt.Printf("resources: %s", resources)
+	if *resources[0].ResourceId != "i-11111111111111111" || *resources[1].ResourceId != "i-22222222222222222" {
+		t.Errorf("Values not correct, got: %s and %s, want: %s and %s.", *resources[0].ResourceId, *resources[1].ResourceId, "i-11111111111111111", "i-22222222222222222")
+	}
 }

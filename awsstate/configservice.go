@@ -1,8 +1,6 @@
 package awsstate
 
 import (
-	"fmt"
-
 	"github.com/aws/aws-sdk-go-v2/aws/external"
 	"github.com/aws/aws-sdk-go-v2/service/configservice"
 	"github.com/aws/aws-sdk-go-v2/service/configservice/configserviceiface"
@@ -21,7 +19,6 @@ func GetResourcesByService(configServiceClient configserviceiface.ConfigServiceA
 		resources = append(resources, object)
 	}
 
-	fmt.Printf("resources: %s", resources)
 	return resources, err
 }
 
