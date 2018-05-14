@@ -25,8 +25,12 @@ func (m *mockConfigServiceClient) ListDiscoveredResourcesRequest(input *configse
 	}
 
 	output := &configservice.ListDiscoveredResourcesOutput{}
-	req := m.newRequest(op, input, output)
-	output.responseMetadata = aws.Response{Request: req}
+	//req := m.newRequest(op, input, output)
+	req := &aws.Request{
+		Operation: op,
+		Params:    input,
+		Data:      output,
+	}
 
 	return configservice.ListDiscoveredResourcesRequest{Request: req, Input: input, Copy: m.ListDiscoveredResourcesRequest}
 	//	return &configservice.ListDiscoveredResourcesRequest{}
