@@ -98,6 +98,10 @@ func main() {
 	for _, resource := range tfstateResources {
 		fmt.Printf("%+v\n", resource)
 	}
+
+	configserviceResources := awsstate.GetConfigServiceResources()
+	fmt.Printf("\nConfig Service Resources: \n%s", configserviceResources)
+
 }
 
 func printUsageAndExit(message string, exitCode int) {
