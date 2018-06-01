@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/mathematician/bifurcate/awsstate"
+	"github.com/mathematician/bifurcate/bifurcate"
 	"github.com/mathematician/bifurcate/tfstate"
 	"github.com/mathematician/bifurcate/version"
 
@@ -94,13 +95,19 @@ func main() {
 		fmt.Printf("%+v\n", key)
 	}
 
-	fmt.Printf("\nTerraform State Resources: \n")
-	for _, resource := range tfstateResources {
-		fmt.Printf("%+v\n", resource)
-	}
+	//fmt.Printf("\nTerraform State Resources: \n")
+	//for _, resource := range tfstateResources {
+	//	fmt.Printf("%+v\n", resource)
+	//}
 
 	configserviceResources := awsstate.GetConfigServiceResources()
-	fmt.Printf("\nConfig Service Resources: \n%s", configserviceResources)
+	//fmt.Printf("\nConfig Service Resources: \n%s", configserviceResources)
+
+	bifurcations := bifurcate.GetBifurcations(tfstateResources, configserviceResources)
+	fmt.Printf("\nBifurcated resources: \n")
+	for _, bifurcation := range bifurcations {
+		fmt.Printf("%+v\n", bifurcation)
+	}
 
 }
 
