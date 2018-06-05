@@ -5,11 +5,16 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/mathematician/bifurcate/awsstate"
+	"github.com/mathematician/bifurcate/bifurcate"
+	"github.com/mathematician/bifurcate/tfstate"
 	"github.com/mathematician/bifurcate/version"
+
 	"github.com/sirupsen/logrus"
 )
 
 const (
+	// BANNER is what is printed for help/info output
 	BANNER = `
  ______  _____ _______ _     _  ______ _______ _______ _______ _______
  |_____]   |   |______ |     | |_____/ |       |_____|    |    |______
@@ -17,15 +22,20 @@ const (
                                                                       
 Tool to generate bifurcations between aws account and terraform state
 Version: %s
+bifurcate -region <region> <bucket>
 `
 )
 
 var (
+	region string
+
 	debug bool
 	vrsn  bool
 )
 
 func init() {
+	flag.StringVar(&region, "region", "", "aws region")
+
 	flag.BoolVar(&vrsn, "version", false, "print version and exit")
 	flag.BoolVar(&debug, "debug", false, "run in debug")
 
@@ -59,11 +69,46 @@ func init() {
 	if debug {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
+
+	if region == "" {
+		printUsageAndExit("Missing region argument.", 1)
+	}
+
+	if region != "" {
+		os.Setenv("AWS_REGION", region)
+	}
 }
 
 func main() {
 	s3Bucket := flag.Args()[0]
-	fmt.Printf("Bucket where state files are stored: %s", s3Bucket)
+	fmt.Printf("Bucket where state files are stored: %s\n", s3Bucket)
+
+	keys, err := awsstate.FindKeysBySuffix(s3Bucket, ".tfstate")
+	if err != nil {
+		panic("Error, " + err.Error())
+	}
+
+	tfstateResources := tfstate.GetAllResources(s3Bucket, keys)
+
+	fmt.Printf("\nTerraform State Keys: \n")
+	for _, key := range keys {
+		fmt.Printf("%+v\n", key)
+	}
+
+	//fmt.Printf("\nTerraform State Resources: \n")
+	//for _, resource := range tfstateResources {
+	//	fmt.Printf("%+v\n", resource)
+	//}
+
+	configserviceResources := awsstate.GetConfigServiceResources()
+	//fmt.Printf("\nConfig Service Resources: \n%s", configserviceResources)
+
+	bifurcations := bifurcate.GetBifurcations(tfstateResources, configserviceResources)
+	fmt.Printf("\nBifurcated resources: \n")
+	for _, bifurcation := range bifurcations {
+		fmt.Printf("%+v\n", bifurcation)
+	}
+
 }
 
 func printUsageAndExit(message string, exitCode int) {
@@ -71,6 +116,7 @@ func printUsageAndExit(message string, exitCode int) {
 		fmt.Fprintf(os.Stderr, message)
 		fmt.Fprintf(os.Stderr, "\n\n")
 	}
+
 	flag.Usage()
 	fmt.Fprintf(os.Stderr, "\n")
 	os.Exit(exitCode)
